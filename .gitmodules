@@ -1,0 +1,6 @@
+[submodule "BasicDisplay"]
+	path = BasicDisplay
+	url = git@github.com:KDKHD/BasicDisplay.git
+[submodule "UserSecurity"]
+	path = UserSecurity
+	url = git@github.com:KDKHD/UserSecurity.git
