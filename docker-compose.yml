@@ -1,12 +1,41 @@
 version: '3.1'
 
 services:
- # user_security:
- #   build:
- #     context: service
- #     dockerfile: src/main/resources/Dockerfile
- #   ports:
-  #    - "8080:8080"
+  # front_service
+
+  front-envoy:
+    image: envoyproxy/envoy-alpine:v1.7.0
+    build:
+      context: ./FrontEnvoy
+      dockerfile: Dockerfile
+    volumes:
+      - ./FrontEnvoy/envoy-config.yaml:/etc/envoy-config.yaml
+      - ./FrontEnvoy/server.key:/etc/server.key
+      - ./FrontEnvoy/server.crt:/etc/server.crt
+
+    ports:
+      - "443:443"
+      - "8888:80"
+      - "9901:9901"
+    command: "/usr/local/bin/envoy -c /etc/envoy-config.yaml --v2-config-only -l info --service-cluster 'front-envoy' --service-node 'front-envoy' --log-format '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'"
+
+  # user_security
+
+  # user_security_service:
+  #   build:
+  #     context: UserSecurity
+  #     dockerfile: src/main/resources/Dockerfile
+  #   ports:
+  #     - "8080:8080"
+
+  user_security_service_envoy:
+    image: envoyproxy/envoy-alpine:v1.7.0
+    volumes:
+      - ./UserSecurity/envoy-config.yaml:/etc/envoy-config.yaml
+    ports:
+      - "8786:8786"
+    command: "/usr/local/bin/envoy -c /etc/envoy-config.yaml --v2-config-only -l info --service-cluster 'user_security_service' --service-node 'user_security_service' --log-format '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'"
+
   user_security_db:
     build:
       context: UserSecurityDB
@@ -20,9 +49,27 @@ services:
       - "15432:5432"
     networks:
       - net
+
+  # basic_display
+
+  # basic_display_service:
+  #   build:
+  #     context: UserSecurity
+  #     dockerfile: src/main/resources/Dockerfile
+  #   ports:
+  #     - "8081:8080"
+
+  basic_display_service_envoy:
+    image: envoyproxy/envoy-alpine:v1.7.0
+    volumes:
+      - ./BasicDisplay/envoy-config.yaml:/etc/envoy-config.yaml
+    ports:
+      - "8789:8789"
+    command: "/usr/local/bin/envoy -c /etc/envoy-config.yaml --v2-config-only -l info --service-cluster 'basic_display_service' --service-node 'basic_display_service' --log-format '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'"
+
   basic_display_db:
     build:
-      context: db
+      context: BasicDisplayDB
       dockerfile: Dockerfile
     environment:
       POSTGRES_DB: "db"
@@ -33,5 +80,16 @@ services:
       - "25432:5432"
     networks:
       - net
+
+  # web_frontend
+
+  web_frontend_service_envoy:
+    image: envoyproxy/envoy-alpine:v1.7.0
+    volumes:
+      - ./WebFrontend/envoy-config.yaml:/etc/envoy-config.yaml
+    ports:
+      - "8790:8790"
+    command: "/usr/local/bin/envoy -c /etc/envoy-config.yaml --v2-config-only -l info --service-cluster 'web_frontend_service' --service-node 'web_frontend_service' --log-format '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'"
+
 networks:
   net:

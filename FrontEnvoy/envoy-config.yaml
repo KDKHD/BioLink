@@ -1,0 +1,88 @@
+admin:
+  access_log_path: "/tmp/admin_access.log"
+  address: 
+    socket_address: 
+      address: "0.0.0.0"
+      port_value: 9901
+static_resources: 
+  listeners:
+    - 
+      name: "http_listener"
+      address: 
+        socket_address: 
+          address: "0.0.0.0"
+          port_value: 443
+      filter_chains:
+          filters: 
+            - 
+              name: "envoy.http_connection_manager"
+              config:
+                stat_prefix: "ingress"
+                codec_type: "AUTO"
+                generate_request_id: true
+                route_config: 
+                  name: "local_route"
+                  virtual_hosts: 
+                    - 
+                      name: "https-route"
+                      domains: 
+                        - "api.heezy.dev"
+                      routes: 
+                        - 
+                          match: 
+                            prefix: "/user_security_service/"
+                          route:
+                            cluster: "user_security_service"
+                            prefix_rewrite: "/"
+                    -
+                      name: "client"
+                      domains: 
+                        - "heezy.dev"
+                      routes: 
+                        - 
+                          match: 
+                            prefix: "/"
+                          route:
+                            cluster: "web_frontend_service"
+                http_filters:
+                  - 
+                    name: "envoy.router"
+          tls_context:
+            common_tls_context:
+              tls_certificates:
+                - certificate_chain:
+                    filename: "/etc/server.crt"
+                  private_key:
+                    filename: "/etc/server.key"
+  clusters:
+    - 
+      name: "user_security_service"
+      connect_timeout: "0.25s"
+      type: "strict_dns"
+      lb_policy: "ROUND_ROBIN"
+      hosts:
+        - 
+          socket_address: 
+            address: "user_security_service_envoy"
+            port_value: 8786
+    - 
+      name: "basic_display_service"
+      connect_timeout: "0.25s"
+      type: "strict_dns"
+      lb_policy: "ROUND_ROBIN"
+      hosts:
+        - 
+          socket_address: 
+            address: "basic_display_service_envoy"
+            port_value: 8789
+    - 
+      name: "web_frontend_service"
+      connect_timeout: "0.25s"
+      type: "strict_dns"
+      lb_policy: "ROUND_ROBIN"
+      hosts:
+        - 
+          socket_address: 
+            address: "web_frontend_service_envoy"
+            port_value: 8790
+    
