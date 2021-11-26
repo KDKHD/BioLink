@@ -9,9 +9,9 @@ services:
       context: ./FrontEnvoy
       dockerfile: Dockerfile
     volumes:
-      - ./FrontEnvoy/envoy-config.yaml:/etc/envoy-config.yaml
-      - ./FrontEnvoy/server.key:/etc/server.key
-      - ./FrontEnvoy/server.crt:/etc/server.crt
+      - ./envoy/envoy-config.yaml:/etc/envoy-config.yaml
+      - ./envoy/server.key:/etc/server.key
+      - ./envoy/server.crt:/etc/server.crt
 
     ports:
       - "443:443"
@@ -22,16 +22,16 @@ services:
   # user_security
 
   # user_security_service:
-  #   build:
-  #     context: UserSecurity
-  #     dockerfile: src/main/resources/Dockerfile
+  #   image: user_security_service:latest
   #   ports:
   #     - "8080:8080"
 
   user_security_service_envoy:
     image: envoyproxy/envoy-alpine:v1.7.0
     volumes:
-      - ./UserSecurity/envoy-config.yaml:/etc/envoy-config.yaml
+      - ./envoy/envoy-config.yaml:/etc/envoy-config.yaml
+      - ./envoy/server.key:/etc/server.key
+      - ./envoy/server.crt:/etc/server.crt
     ports:
       - "8786:8786"
     command: "/usr/local/bin/envoy -c /etc/envoy-config.yaml --v2-config-only -l info --service-cluster 'user_security_service' --service-node 'user_security_service' --log-format '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'"
@@ -62,7 +62,9 @@ services:
   basic_display_service_envoy:
     image: envoyproxy/envoy-alpine:v1.7.0
     volumes:
-      - ./BasicDisplay/envoy-config.yaml:/etc/envoy-config.yaml
+      - ./envoy/envoy-config.yaml:/etc/envoy-config.yaml
+      - ./envoy/server.key:/etc/server.key
+      - ./envoy/server.crt:/etc/server.crt
     ports:
       - "8789:8789"
     command: "/usr/local/bin/envoy -c /etc/envoy-config.yaml --v2-config-only -l info --service-cluster 'basic_display_service' --service-node 'basic_display_service' --log-format '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'"
@@ -86,7 +88,9 @@ services:
   web_frontend_service_envoy:
     image: envoyproxy/envoy-alpine:v1.7.0
     volumes:
-      - ./WebFrontend/envoy-config.yaml:/etc/envoy-config.yaml
+      - ./envoy/envoy-config.yaml:/etc/envoy-config.yaml
+      - ./envoy/server.key:/etc/server.key
+      - ./envoy/server.crt:/etc/server.crt
     ports:
       - "8790:8790"
     command: "/usr/local/bin/envoy -c /etc/envoy-config.yaml --v2-config-only -l info --service-cluster 'web_frontend_service' --service-node 'web_frontend_service' --log-format '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'"
