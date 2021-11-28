@@ -4,3 +4,6 @@
 [submodule "UserSecurity"]
 	path = UserSecurity
 	url = git@github.com:KDKHD/UserSecurity.git
+[submodule "KubernetesManager"]
+        path = KubernetesManager
+        url = git@github.com:KDKHD/KubernetesManager.git
