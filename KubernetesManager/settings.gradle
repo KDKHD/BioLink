@@ -1,5 +1,0 @@
-rootProject.name = 'UserSecurity'
-include 'common'
-include 'service'
-include 'interfaces'
-

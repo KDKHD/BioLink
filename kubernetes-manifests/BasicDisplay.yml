@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: basic-display-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: basic_display_service
+  template:
+    metadata:
+      labels:
+        app: basic_display_service
+    spec:
+      containers:
+      - name: basic-display-service
+        image: basic_display_service:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+          name: svc-port
+          protocol: TCP
+      - name: envoy
+        image: envoyproxy/envoy-alpine:v1.7.0
+        ports:
+          - containerPort: 9901
+            protocol: TCP
+            name: envoy-admin
+          - containerPort: 8789
+            protocol: TCP
+            name: envoy-web
+        volumeMounts:
+          - name: envoy-config
+            mountPath: /etc/envoy-config
+            readOnly: true
+          - name: tls-secret
+            mountPath: /etc/tls-secret
+            readOnly: true
+        command: ["/usr/local/bin/envoy"]
+        args: ["-c", "/etc/envoy-config/envoy-config.yaml", "--v2-config-only", "-l", "info","--service-cluster","basic_display_service","--service-node","basic_display_service", "--log-format", "[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v"]
+      volumes:
+        - name: envoy-config
+          configMap:
+            name: envoy-config
+        - name: tls-secret
+          secret:
+            secretName: tls-secret

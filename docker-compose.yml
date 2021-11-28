@@ -5,19 +5,15 @@ services:
 
   front-envoy:
     image: envoyproxy/envoy-alpine:v1.7.0
-    build:
-      context: ./FrontEnvoy
-      dockerfile: Dockerfile
     volumes:
-      - ./envoy/envoy-config.yaml:/etc/envoy-config.yaml
-      - ./envoy/server.key:/etc/server.key
-      - ./envoy/server.crt:/etc/server.crt
-
+      - ./envoy/config/envoy-config.yaml:/etc/envoy-config/envoy-config.yaml
+      - ./envoy/tls-secret/server.key:/etc/tls-secret/tls.key
+      - ./envoy/tls-secret/server.crt:/etc/tls-secret/tls.crt
     ports:
       - "443:443"
       - "8888:80"
       - "9901:9901"
-    command: "/usr/local/bin/envoy -c /etc/envoy-config.yaml --v2-config-only -l info --service-cluster 'front-envoy' --service-node 'front-envoy' --log-format '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'"
+    command: "/usr/local/bin/envoy -c /etc/envoy-config/envoy-config.yaml --v2-config-only -l info --service-cluster 'front-envoy' --service-node 'front-envoy' --log-format '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'"
 
   # user_security
 
@@ -29,12 +25,12 @@ services:
   user_security_service_envoy:
     image: envoyproxy/envoy-alpine:v1.7.0
     volumes:
-      - ./envoy/envoy-config.yaml:/etc/envoy-config.yaml
-      - ./envoy/server.key:/etc/server.key
-      - ./envoy/server.crt:/etc/server.crt
+      - ./envoy/config/envoy-config.yaml:/etc/envoy-config/envoy-config.yaml
+      - ./envoy/tls-secret/server.key:/etc/tls-secret/tls.key
+      - ./envoy/tls-secret/server.crt:/etc/tls-secret/tls.crt
     ports:
       - "8786:8786"
-    command: "/usr/local/bin/envoy -c /etc/envoy-config.yaml --v2-config-only -l info --service-cluster 'user_security_service' --service-node 'user_security_service' --log-format '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'"
+    command: "/usr/local/bin/envoy -c /etc/envoy-config/envoy-config.yaml --v2-config-only -l info --service-cluster 'user_security_service' --service-node 'user_security_service' --log-format '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'"
 
   user_security_db:
     build:
@@ -62,12 +58,12 @@ services:
   basic_display_service_envoy:
     image: envoyproxy/envoy-alpine:v1.7.0
     volumes:
-      - ./envoy/envoy-config.yaml:/etc/envoy-config.yaml
-      - ./envoy/server.key:/etc/server.key
-      - ./envoy/server.crt:/etc/server.crt
+      - ./envoy/config/envoy-config.yaml:/etc/envoy-config/envoy-config.yaml
+      - ./envoy/tls-secret/server.key:/etc/tls-secret/tls.key
+      - ./envoy/tls-secret/server.crt:/etc/tls-secret/tls.crt
     ports:
       - "8789:8789"
-    command: "/usr/local/bin/envoy -c /etc/envoy-config.yaml --v2-config-only -l info --service-cluster 'basic_display_service' --service-node 'basic_display_service' --log-format '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'"
+    command: "/usr/local/bin/envoy -c /etc/envoy-config/envoy-config.yaml --v2-config-only -l info --service-cluster 'basic_display_service' --service-node 'basic_display_service' --log-format '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'"
 
   basic_display_db:
     build:
@@ -88,12 +84,12 @@ services:
   web_frontend_service_envoy:
     image: envoyproxy/envoy-alpine:v1.7.0
     volumes:
-      - ./envoy/envoy-config.yaml:/etc/envoy-config.yaml
-      - ./envoy/server.key:/etc/server.key
-      - ./envoy/server.crt:/etc/server.crt
+      - ./envoy/config/envoy-config.yaml:/etc/envoy-config/envoy-config.yaml
+      - ./envoy/tls-secret/server.key:/etc/tls-secret/tls.key
+      - ./envoy/tls-secret/server.crt:/etc/tls-secret/tls.crt
     ports:
       - "8790:8790"
-    command: "/usr/local/bin/envoy -c /etc/envoy-config.yaml --v2-config-only -l info --service-cluster 'web_frontend_service' --service-node 'web_frontend_service' --log-format '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'"
+    command: "/usr/local/bin/envoy -c /etc/envoy-config/envoy-config.yaml --v2-config-only -l info --service-cluster 'web_frontend_service' --service-node 'web_frontend_service' --log-format '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'"
 
 networks:
   net:
