@@ -1,59 +1,48 @@
 admin:
-  access_log_path: "/tmp/admin_access.log"
-  address: 
-    socket_address: 
-      address: "0.0.0.0"
-      port_value: 9901
-static_resources: 
+  access_log_path: /dev/null
+  address:
+    socket_address:
+      address: 127.0.0.1
+      port_value: 9000
+node:
+  cluster: mycluster
+  id: test-id
+static_resources:
   listeners:
-    - 
-      name: "http_listener"
-      address: 
+    - name: front_envoy_listener
+      address:
         socket_address: 
-          address: "0.0.0.0"
+          address: 0.0.0.0
           port_value: 443
       filter_chains:
-          filters: 
-            - 
-              name: "envoy.http_connection_manager"
+          filters:
+            - name: envoy.http_connection_manager
               config:
-                stat_prefix: "ingress"
-                codec_type: "AUTO"
+                stat_prefix: ingress_front_envoy
+                codec_type: AUTO
                 generate_request_id: true
-                route_config: 
-                  name: "local_route"
-                  virtual_hosts: 
-                    - 
-                      name: "https-route"
+                route_config:
+                  name: local_route
+                  virtual_hosts:
+                    - name: user_security_service_envoy
                       domains: 
                         - "api.heezy.dev"
-                      routes: 
-                        - 
-                          match: 
+                      routes:
+                        - match: 
                             prefix: "/user_security_service/"
-                          route:
-                            cluster: "user_security_service_envoy"
+                          route: 
+                            cluster: user_security_service_envoy 
                             prefix_rewrite: "/"
-                        - 
-                          match: 
-                            prefix: "/basic_display_service/"
-                          route:
-                            cluster: "basic_display_service_envoy"
-                            prefix_rewrite: "/"
-
-                    -
-                      name: "client"
+                    - name: web_frontend_service_envoy
                       domains: 
                         - "heezy.dev"
-                      routes: 
-                        - 
-                          match: 
+                      routes:
+                        - match: 
                             prefix: "/"
-                          route:
-                            cluster: "web_frontend_service_envoy"
+                          route: 
+                            cluster: web_frontend_service_envoy 
                 http_filters:
-                  - 
-                    name: "envoy.router"
+                  - name: envoy.router
           tls_context:
             common_tls_context:
               tls_certificates:
@@ -61,210 +50,125 @@ static_resources:
                     filename: "/etc/tls-secret/tls.crt"
                   private_key:
                     filename: "/etc/tls-secret/tls.key"
-
-    -
-      name: "user_security_service_envoy-svc-http-listener"
+    - name: user_security_service_envoy_listener
       address:
-        socket_address:
-          address: "0.0.0.0"
-          port_value: 8786
+        socket_address: { address: 0.0.0.0, port_value: 8786 }
       filter_chains:
-        -
-          filters:
-            -
-              name: "envoy.http_connection_manager"
-              config:
-                stat_prefix: "ingress"
-                codec_type: "AUTO"
-                route_config:
-                  name: "user_security_service_envoy-svc-http-route"
-                  virtual_hosts:
-                    -
-                      name: "user_security_service_envoy-svc-http-route"
-                      domains:
-                        - "*"
-                      routes:
-                        -
-                          match:
-                            prefix: "/"
-                          route:
-                            cluster: "user_security_service"
-                http_filters:
-                  -
-                    name: "envoy.router"
-
-
-    -
-      name: "user_security_db_envoy-svc-http-listener"
+      - filters:
+        - name: envoy.http_connection_manager
+          config:
+            stat_prefix: ingress_user_security_service_envoy
+            codec_type: AUTO
+            route_config:
+              name: local_route
+              virtual_hosts:
+              - name: user_security_service
+                domains: ["*"]
+                routes:
+                - match: 
+                    prefix: "/"
+                  route: 
+                    cluster: user_security_service 
+            http_filters:
+            - name: envoy.router
+    - name: web_frontend_service_envoy_listener
       address:
-        socket_address:
-          address: "0.0.0.0"
-          port_value: 8787
+        socket_address: { address: 0.0.0.0, port_value: 8790 }
       filter_chains:
-        -
-          filters:
-            -
-              name: "envoy.http_connection_manager"
-              config:
-                stat_prefix: "ingress"
-                codec_type: "AUTO"
-                route_config:
-                  name: "user_security_db_envoy-svc-http-route"
-                  virtual_hosts:
-                    -
-                      name: "user_security_db_envoy-svc-http-route"
-                      domains:
-                        - "*"
-                      routes:
-                        -
-                          match:
-                            prefix: "/"
-                          route:
-                            cluster: "user_security_db"
-                http_filters:
-                  -
-                    name: "envoy.router"
-
-    -
-      name: "basic_display_service_envoy-svc-http-listener"
-      address:
-        socket_address:
-          address: "0.0.0.0"
-          port_value: 8789
-      filter_chains:
-        -
-          filters:
-            -
-              name: "envoy.http_connection_manager"
-              config:
-                stat_prefix: "ingress"
-                codec_type: "AUTO"
-                route_config:
-                  name: "basic_display_service_envoy-svc-http-route"
-                  virtual_hosts:
-                    -
-                      name: "basic_display_service_envoy-svc-http-route"
-                      domains:
-                        - "*"
-                      routes:
-                        -
-                          match:
-                            prefix: "/"
-                          route:
-                            cluster: "basic_display_service"
-                http_filters:
-                  -
-                    name: "envoy.router"
-
-    -
-      name: "web_frontend_service_envoy-svc-http-listener"
-      address:
-        socket_address:
-          address: "0.0.0.0"
-          port_value: 8790
-      filter_chains:
-        -
-          filters:
-            -
-              name: "envoy.http_connection_manager"
-              config:
-                stat_prefix: "ingress"
-                codec_type: "AUTO"
-                route_config:
-                  name: "web_frontend_service_envoy-svc-http-route"
-                  virtual_hosts:
-                    -
-                      name: "web_frontend_service_envoy-svc-http-route"
-                      domains:
-                        - "*"
-                      routes:
-                        -
-                          match:
-                            prefix: "/"
-                          route:
-                            cluster: "web_frontend_service"
-                http_filters:
-                  -
-                    name: "envoy.router"
+      - filters:
+        - name: envoy.http_connection_manager
+          config:
+            stat_prefix: ingress_web_frontend_service_envoy
+            codec_type: AUTO
+            route_config:
+              name: local_route
+              virtual_hosts:
+              - name: web_frontend_service
+                domains: ["*"]
+                routes:
+                - match: 
+                    prefix: "/"
+                  route: 
+                    cluster: web_frontend_service
+            http_filters:
+            - name: envoy.router
   clusters:
-    - 
-      name: "user_security_service_envoy"
-      connect_timeout: "0.25s"
-      type: "strict_dns"
-      lb_policy: "ROUND_ROBIN"
-      hosts:
-        - 
-          socket_address: 
-            address: "user_security_service_envoy"
-            port_value: 8786
-    -
-      name: "user_security_service"
-      connect_timeout: "0.25s"
-      type: "strict_dns"
-      lb_policy: "ROUND_ROBIN"
-      hosts:
-        -
-          socket_address:
-            address: "192.168.0.5"
-            port_value: 8080  
-    -
-      name: "user_security_db_envoy"
-      connect_timeout: "0.25s"
-      type: "strict_dns"
-      lb_policy: "ROUND_ROBIN"
-      hosts:
-        -
-          socket_address:
-            address: "user_security_db_envoy"
-            port_value: 8787 
-    -
-      name: "user_security_db"
-      connect_timeout: "0.25s"
-      type: "strict_dns"
-      lb_policy: "ROUND_ROBIN"
-      hosts:
-        -
-          socket_address:
-            address: "localhost"
-            port_value: 15432 
-    - 
-      name: "basic_display_service_envoy"
-      connect_timeout: "0.25s"
-      type: "strict_dns"
-      lb_policy: "ROUND_ROBIN"
-      hosts:
-        - 
-          socket_address: 
-            address: "basic_display_service_envoy"
-            port_value: 8789
-    -
-      name: "basic_display_service"
-      connect_timeout: "0.25s"
-      type: "strict_dns"
-      lb_policy: "ROUND_ROBIN"
-      hosts:
-        -
-          socket_address:
-            address: "192.168.0.5"
-            port_value: 8081
-    - 
-      name: "web_frontend_service_envoy"
-      connect_timeout: "0.25s"
-      type: "strict_dns"
-      lb_policy: "ROUND_ROBIN"
-      hosts:
-        - 
-          socket_address: 
-            address: "web_frontend_service_envoy"
-            port_value: 8790
-    - 
-      name: "web_frontend_service"
-      connect_timeout: "0.25s"
-      type: "strict_dns"
-      lb_policy: "ROUND_ROBIN"
-      hosts:
-        - 
-          socket_address: 
-              address: "192.168.0.5"
-              port_value: 3000
-    
+  - name: user_security_service_envoy
+    type: EDS
+    connect_timeout: 0.25s
+    eds_cluster_config:
+      service_name: user_security_service_envoy
+      eds_config:
+        api_config_source:
+          api_type: REST
+          cluster_names: [eds_cluster]
+          refresh_delay: 20s
+  - name: "user_security_service"
+    connect_timeout: "0.25s"
+    type: "strict_dns"
+    lb_policy: "ROUND_ROBIN"
+    hosts:
+      - socket_address:
+          address: "localhost"
+          port_value: 8080
+  - name: user_security_db_envoy
+    type: EDS
+    connect_timeout: 0.25s
+    eds_cluster_config:
+      service_name: user_security_db_envoy
+      eds_config:
+        api_config_source:
+          api_type: REST
+          cluster_names: [eds_cluster]
+          refresh_delay: 20s
+  - name: "user_security_db"
+    connect_timeout: "0.25s"
+    type: "strict_dns"
+    lb_policy: "ROUND_ROBIN"
+    hosts:
+      - socket_address:
+          address: "localhost"
+          port_value: 15432
+  - name: basic_display_service_envoy
+    type: EDS
+    connect_timeout: 0.25s
+    eds_cluster_config:
+      service_name: basic_display_service_envoy
+      eds_config:
+        api_config_source:
+          api_type: REST
+          cluster_names: [eds_cluster]
+          refresh_delay: 20s
+  - name: "basic_display_service"
+    connect_timeout: "0.25s"
+    type: "strict_dns"
+    lb_policy: "ROUND_ROBIN"
+    hosts:
+      - socket_address:
+          address: "localhost"
+          port_value: 8080
+  - name: web_frontend_service_envoy
+    type: EDS
+    connect_timeout: 0.25s
+    eds_cluster_config:
+      service_name: web_frontend_service_envoy
+      eds_config:
+        api_config_source:
+          api_type: REST
+          cluster_names: [eds_cluster]
+          refresh_delay: 20s
+  - name: "web_frontend_service"
+    connect_timeout: "0.25s"
+    type: "strict_dns"
+    lb_policy: "ROUND_ROBIN"
+    hosts:
+      - socket_address:
+          address: "192.168.0.5"
+          port_value: 3000
+  - name: eds_cluster
+    type: "strict_dns"
+    connect_timeout: 0.25s
+    hosts: 
+      - socket_address: 
+          address: "eds_service"
+          port_value: 8080

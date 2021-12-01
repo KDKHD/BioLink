@@ -1,8 +1,13 @@
 version: '3.1'
 
 services:
-  # front_service
+  # eds
+  eds_service:
+    image: katacoda/eds_server
+    ports:
+      - "8080:8080"
 
+  # front_service
   front-envoy:
     image: envoyproxy/envoy-alpine:v1.7.0
     volumes:
@@ -55,15 +60,15 @@ services:
   #   ports:
   #     - "8081:8080"
 
-  basic_display_service_envoy:
-    image: envoyproxy/envoy-alpine:v1.7.0
-    volumes:
-      - ./envoy/config/envoy-config.yaml:/etc/envoy-config/envoy-config.yaml
-      - ./envoy/tls-secret/server.key:/etc/tls-secret/tls.key
-      - ./envoy/tls-secret/server.crt:/etc/tls-secret/tls.crt
-    ports:
-      - "8789:8789"
-    command: "/usr/local/bin/envoy -c /etc/envoy-config/envoy-config.yaml --v2-config-only -l info --service-cluster 'basic_display_service' --service-node 'basic_display_service' --log-format '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'"
+  # basic_display_service_envoy:
+  #   image: envoyproxy/envoy-alpine:v1.7.0
+  #   volumes:
+  #     - ./envoy/config/envoy-config.yaml:/etc/envoy-config/envoy-config.yaml
+  #     - ./envoy/tls-secret/server.key:/etc/tls-secret/tls.key
+  #     - ./envoy/tls-secret/server.crt:/etc/tls-secret/tls.crt
+  #   ports:
+  #     - "8789:8789"
+  #   command: "/usr/local/bin/envoy -c /etc/envoy-config/envoy-config.yaml --v2-config-only -l info --service-cluster 'basic_display_service' --service-node 'basic_display_service' --log-format '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'"
 
   basic_display_db:
     build:
