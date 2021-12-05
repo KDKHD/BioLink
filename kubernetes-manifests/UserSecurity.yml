@@ -11,6 +11,7 @@ spec:
     metadata:
       labels:
         app: user_security_service
+        type: envoy-managed-service
     spec:
       containers:
       - name: user-security-service

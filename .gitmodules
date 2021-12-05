@@ -7,3 +7,6 @@
 [submodule "KubernetesManager"]
         path = KubernetesManager
         url = git@github.com:KDKHD/KubernetesManager.git
+[submodule "Client"]
+	path = Client
+	url = git@github.com:KDKHD/client.git

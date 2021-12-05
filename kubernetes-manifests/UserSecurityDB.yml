@@ -11,6 +11,8 @@ spec:
     metadata:
       labels:
         app: user_security_db
+        type: envoy-managed-service
+        edsservice-service-name: user_security_db_envoy
     spec:
       containers:
       - name: user-security-db
