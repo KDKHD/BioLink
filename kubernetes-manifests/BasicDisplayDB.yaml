@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: basic-display-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: basic_display_db
+  template:
+    metadata:
+      labels:
+        app: basic_display_db
+        type: envoy-managed-service
+        edsservice-service-name: basic_display_db_envoy
+    spec:
+      containers:
+      - name: basic-display-db
+        image: postgres:14.1
+        ports:
+        - containerPort: 15432
+        envFrom:
+          - configMapRef:
+              name: basic-display-db-config
+      - name: envoy
+        image: envoyproxy/envoy-alpine:v1.20.1
+        ports:
+          - containerPort: 9902
+            protocol: TCP
+            name: envoy-admin
+          - containerPort: 8792
+            protocol: TCP
+            name: envoy-web
+        volumeMounts:
+          - name: envoy-config
+            mountPath: /etc/envoy-config
+            readOnly: true
+          - name: tls-secret
+            mountPath: /etc/tls-secret
+            readOnly: true
+        command: ["/usr/local/bin/envoy"]
+        args: ["-c", "/etc/envoy-config/envoy-config.json", "-l", "info","--service-cluster","basic_display_db","--service-node","basic_display_db", "--log-format", "[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v"]
+      volumes:
+        - name: envoy-config
+          configMap:
+            name: envoy-config
+        - name: tls-secret
+          secret:
+            secretName: tls-secret

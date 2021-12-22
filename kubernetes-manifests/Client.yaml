@@ -1,33 +1,34 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: basic-display-service
+  name: client-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: basic_display_service
-      envoy-managed-service: true
+      app: client_service
   template:
     metadata:
       labels:
-        app: basic_display_service
+        app: client_service
+        type: envoy-managed-service
+        edsservice-service-name: web_frontend_service_envoy
     spec:
       containers:
-      - name: basic-display-service
-        image: basic_display_service:latest
+      - name: client-service
+        image: client_service:latest
         imagePullPolicy: Never
         ports:
-        - containerPort: 8080
+        - containerPort: 3000
           name: svc-port
           protocol: TCP
       - name: envoy
-        image: envoyproxy/envoy-alpine:v1.7.0
+        image: envoyproxy/envoy-alpine:v1.20.1
         ports:
           - containerPort: 9901
             protocol: TCP
             name: envoy-admin
-          - containerPort: 8789
+          - containerPort: 8791
             protocol: TCP
             name: envoy-web
         volumeMounts:
@@ -38,7 +39,7 @@ spec:
             mountPath: /etc/tls-secret
             readOnly: true
         command: ["/usr/local/bin/envoy"]
-        args: ["-c", "/etc/envoy-config/envoy-config.yaml", "--v2-config-only", "-l", "info","--service-cluster","basic_display_service","--service-node","basic_display_service", "--log-format", "[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v"]
+        args: ["-c", "/etc/envoy-config/envoy-config.json", "-l", "info","--service-cluster","client_service","--service-node","client_service", "--log-format", "[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v"]
       volumes:
         - name: envoy-config
           configMap:

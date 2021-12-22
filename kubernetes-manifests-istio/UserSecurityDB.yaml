@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: usersecuritydb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: usersecuritydb
+  template:
+    metadata:
+      labels:
+        app: usersecuritydb
+    spec:
+      containers:
+      - name: server
+        image: postgres:14.1
+        ports:
+        - containerPort: 5432
+          name: tcp-port
+        envFrom:
+          - configMapRef:
+              name: user-security-db-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: usersecuritydb
+spec:
+  type: ClusterIP
+  selector:
+    app: usersecuritydb
+  ports:
+  - name: postgres
+    port: 5432
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: usersecuritydb
+spec:
+  hosts:
+  - usersecuritydb
+  http:
+  - route:
+    - destination:
+        host: usersecuritydb
+        port:
+          number: 5432

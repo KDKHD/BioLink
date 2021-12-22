@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: usersecurityservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: usersecurityservice
+  template:
+    metadata:
+      labels:
+        app: usersecurityservice
+    spec:
+      containers:
+      - name: server
+        image: user_security_service:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+          name: tcp-port
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: usersecurityservice
+spec:
+  type: ClusterIP
+  selector:
+    app: usersecurityservice
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: usersecurityservice
+spec:
+  hosts:
+  - usersecurityservice
+  http:
+  - route:
+    - destination:
+        host: usersecurityservice

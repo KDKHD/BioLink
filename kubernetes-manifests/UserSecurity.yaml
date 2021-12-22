@@ -12,6 +12,7 @@ spec:
       labels:
         app: user_security_service
         type: envoy-managed-service
+        edsservice-service-name: user_security_service_envoy
     spec:
       containers:
       - name: user-security-service
@@ -22,14 +23,26 @@ spec:
           name: svc-port
           protocol: TCP
       - name: envoy
-        image: envoyproxy/envoy-alpine:v1.7.0
+        image: envoyproxy/envoy-alpine:v1.20.1
         ports:
           - containerPort: 9901
             protocol: TCP
             name: envoy-admin
+          - containerPort: 8754
+            protocol: TCP
+            name: listener-0
+          - containerPort: 443
+            protocol: TCP
+            name: listener-1
           - containerPort: 8786
             protocol: TCP
             name: envoy-web
+          - containerPort: 8787
+            protocol: TCP
+            name: listener-3
+          - containerPort: 8790
+            protocol: TCP
+            name: listener-4
         volumeMounts:
           - name: envoy-config
             mountPath: /etc/envoy-config
@@ -38,7 +51,7 @@ spec:
             mountPath: /etc/tls-secret
             readOnly: true
         command: ["/usr/local/bin/envoy"]
-        args: ["-c", "/etc/envoy-config/envoy-config.yaml", "--v2-config-only", "-l", "info","--service-cluster","user_security_service","--service-node","user_security_service", "--log-format", "[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v"]
+        args: ["-c", "/etc/envoy-config/envoy-config.json", "-l", "info","--service-cluster","user_security_service","--service-node","user_security_service", "--log-format", "[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v"]
       volumes:
         - name: envoy-config
           configMap:
