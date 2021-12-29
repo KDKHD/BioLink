@@ -6,7 +6,9 @@ docker run --name user_security_service -d -p 8080:8080 user_security_service:la
 
 
 ### Refresh istio certs
-`kubectl -n istio-system delete pod $(kubectl -n istio-system get pod -lapp=istio-ingressgateway -ojsonpath='{.items[0].metadata.name}')`
+```
+kubectl -n istio-system delete pod $(kubectl -n istio-system get pod -lapp=istio-ingressgateway -ojsonpath='{.items[0].metadata.name}')
+```
 
 
 ### Creating certificates
