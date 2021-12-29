@@ -7,8 +7,8 @@ services:
     image: envoyproxy/envoy-alpine:v1.7.0
     volumes:
       - ./Envoy/envoy-config.yaml:/etc/envoy-config.yaml
-      - ./Envoy/tls-secret/server.key:/etc/tls-secret/server.key
-      - ./Envoy/tls-secret/server.crt:/etc/tls-secret/server.crt
+      - ./TlsSecret/server.key:/etc/tls-secret/server.key
+      - ./TlsSecret/server.crt:/etc/tls-secret/server.crt
     ports:
       - "443:443"
       - "80:80"
@@ -22,12 +22,24 @@ services:
   #   image: user_security_service:latest
   #   ports:
   #     - "18080:18080"
+  #   networks:
+  #     - net
 
   # basicdisplayservice:
   #   hostname: usersecurityservice
-  #   image: user_security_service:latest
+  #   image: basic_display_service:latest
   #   ports:
   #     - "28080:28080"
+  #   networks:
+  #     - net
+
+  # nextclientservice:
+  #   hostname: nextclientservice
+  #   image: next_client_service:latest
+  #   ports:
+  #     - "3000:3000"
+  #   networks:
+  #     - net
 
   usersecuritydb:
     hostname: usersecuritydb
@@ -54,15 +66,6 @@ services:
       - "25432:25432"
     networks:
       - net
-      
-  # # web_frontend
-  # webfrontendservice:
-  #   hostname: webfrontendservice
-  #   image: client_service:latest
-  #   ports:
-  #     - "3000:3000"
-  #   networks:
-  #     - net
 
 networks:
   net:
