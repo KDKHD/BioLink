@@ -1,104 +1,68 @@
 version: '3.1'
 
 services:
-  # eds
-  # eds_service:
-  #   image: katacoda/eds_server
-  #   ports:
-  #     - "8080:8080"
 
-  # # front_service
-  # front-envoy:
-  #   image: envoyproxy/envoy-alpine:v1.7.0
-  #   volumes:
-  #     - ./envoy/config/envoy-config.yaml:/etc/envoy-config/envoy-config.yaml
-  #     - ./envoy/tls-secret/server.key:/etc/tls-secret/tls.key
-  #     - ./envoy/tls-secret/server.crt:/etc/tls-secret/tls.crt
-  #   ports:
-  #     - "443:443"
-  #     - "8888:80"
-  #     - "9901:9901"
-  #   command: "/usr/local/bin/envoy -c /etc/envoy-config/envoy-config.yaml --v2-config-only -l info --service-cluster 'front-envoy' --service-node 'front-envoy' --log-format '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'"
-
-  # # user_security
-
-  # # user_security_service:
-  # #   image: user_security_service:latest
-  # #   ports:
-  # #     - "8080:8080"
-
-  # user_security_service_envoy:
-  #   image: envoyproxy/envoy-alpine:v1.7.0
-  #   volumes:
-  #     - ./envoy/config/envoy-config.yaml:/etc/envoy-config/envoy-config.yaml
-  #     - ./envoy/tls-secret/server.key:/etc/tls-secret/tls.key
-  #     - ./envoy/tls-secret/server.crt:/etc/tls-secret/tls.crt
-  #   ports:
-  #     - "8786:8786"
-  #   command: "/usr/local/bin/envoy -c /etc/envoy-config/envoy-config.yaml --v2-config-only -l info --service-cluster 'user_security_service' --service-node 'user_security_service' --log-format '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'"
-
-  user_security_db:
-    build:
-      context: UserSecurityDB
-      dockerfile: Dockerfile
-    environment:
-      POSTGRES_DB: "db"
-      POSTGRES_HOST_AUTH_METHOD: "trust"
-      POSTGRES_PASSWORD: "changeme"
-      POSTGRES_USER: "postgres"
+  # front_service
+  front-envoy:
+    image: envoyproxy/envoy-alpine:v1.7.0
+    volumes:
+      - ./Envoy/envoy-config.yaml:/etc/envoy-config.yaml
+      - ./Envoy/tls-secret/server.key:/etc/tls-secret/server.key
+      - ./Envoy/tls-secret/server.crt:/etc/tls-secret/server.crt
     ports:
-      - "5432:5432"
+      - "443:443"
+      - "80:80"
+      - "9901:9901"
+    command: "/usr/local/bin/envoy -c /etc/envoy-config.yaml --v2-config-only -l info --service-cluster 'gateway' --service-node 'gateway' --log-format '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'"
     networks:
       - net
 
-  # # basic_display
-
-  # # basic_display_service:
-  # #   build:
-  # #     context: UserSecurity
-  # #     dockerfile: src/main/resources/Dockerfile
-  # #   ports:
-  # #     - "8081:8080"
-
-  # # basic_display_service_envoy:
-  # #   image: envoyproxy/envoy-alpine:v1.7.0
-  # #   volumes:
-  # #     - ./envoy/config/envoy-config.yaml:/etc/envoy-config/envoy-config.yaml
-  # #     - ./envoy/tls-secret/server.key:/etc/tls-secret/tls.key
-  # #     - ./envoy/tls-secret/server.crt:/etc/tls-secret/tls.crt
-  # #   ports:
-  # #     - "8789:8789"
-  # #   command: "/usr/local/bin/envoy -c /etc/envoy-config/envoy-config.yaml --v2-config-only -l info --service-cluster 'basic_display_service' --service-node 'basic_display_service' --log-format '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'"
-
-  # basic_display_db:
-  #   build:
-  #     context: BasicDisplayDB
-  #     dockerfile: Dockerfile
-  #   environment:
-  #     POSTGRES_DB: "db"
-  #     POSTGRES_HOST_AUTH_METHOD: "trust"
-  #     POSTGRES_PASSWORD: "changeme"
-  #     POSTGRES_USER: "postgres"
+  # usersecurityservice:
+  #   hostname: usersecurityservice
+  #   image: user_security_service:latest
   #   ports:
-  #     - "25432:5432"
-  #   networks:
-  #     - net
+  #     - "18080:18080"
 
+  # basicdisplayservice:
+  #   hostname: usersecurityservice
+  #   image: user_security_service:latest
+  #   ports:
+  #     - "28080:28080"
+
+  usersecuritydb:
+    hostname: usersecuritydb
+    image: postgres:14.1
+    environment:
+      POSTGRES_DB: "postgres"
+      POSTGRES_PASSWORD: "changeme"
+      POSTGRES_USER: "postgres"
+      PGPORT: 15432
+    ports:
+      - "15432:15432"
+    networks:
+      - net
+
+  basicdisplaydb:
+    hostname: basicdisplaydb
+    image: postgres:14.1
+    environment:
+      POSTGRES_DB: "postgres"
+      POSTGRES_PASSWORD: "changeme"
+      POSTGRES_USER: "postgres"
+      PGPORT: 25432
+    ports:
+      - "25432:25432"
+    networks:
+      - net
+      
   # # web_frontend
-  # web_frontend_service:
+  # webfrontendservice:
+  #   hostname: webfrontendservice
   #   image: client_service:latest
   #   ports:
   #     - "3000:3000"
-
-  # web_frontend_service_envoy:
-  #   image: envoyproxy/envoy-alpine:v1.7.0
-  #   volumes:
-  #     - ./envoy/config/envoy-config.yaml:/etc/envoy-config/envoy-config.yaml
-  #     - ./envoy/tls-secret/server.key:/etc/tls-secret/tls.key
-  #     - ./envoy/tls-secret/server.crt:/etc/tls-secret/tls.crt
-  #   ports:
-  #     - "8790:8790"
-  #   command: "/usr/local/bin/envoy -c /etc/envoy-config/envoy-config.yaml --v2-config-only -l info --service-cluster 'web_frontend_service' --service-node 'web_frontend_service' --log-format '[METADATA][%Y-%m-%d %T.%e][%t][%l][%n] %v'"
+  #   networks:
+  #     - net
 
 networks:
   net:

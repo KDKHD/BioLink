@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: basicdisplayservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: basicdisplayservice
+  template:
+    metadata:
+      labels:
+        app: basicdisplayservice
+    spec:
+      containers:
+      - name: server
+        image: basic_display_service:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 28080
+          name: tcp-port
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: basicdisplayservice
+spec:
+  type: ClusterIP
+  selector:
+    app: basicdisplayservice
+  ports:
+  - name: http
+    port: 28080
+    protocol: TCP
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: basicdisplayservice
+spec:
+  hosts:
+  - basicdisplayservice
+  http:
+  - route:
+    - destination:
+        host: basicdisplayservice

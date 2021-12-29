@@ -1,47 +1,47 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: usersecurityservice
+  name: nextclientservice
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: usersecurityservice
+      app: nextclientservice
   template:
     metadata:
       labels:
-        app: usersecurityservice
+        app: nextclientservice
     spec:
       containers:
       - name: server
-        image: user_security_service:latest
+        image: next_client_service:latest
         imagePullPolicy: Never
         ports:
-        - containerPort: 8080
+        - containerPort: 3000
           name: tcp-port
           protocol: TCP
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: usersecurityservice
+  name: nextclientservice
 spec:
   type: ClusterIP
   selector:
-    app: usersecurityservice
+    app: nextclientservice
   ports:
   - name: http
-    port: 8080
+    port: 3000
     protocol: TCP
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  name: usersecurityservice
+  name: nextclientservice
 spec:
   hosts:
-  - usersecurityservice
+  - nextclientservice
   http:
   - route:
     - destination:
-        host: usersecurityservice
+        host: nextclientservice

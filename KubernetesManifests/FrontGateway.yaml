@@ -1,0 +1,72 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+    name: gateway
+spec:
+    selector:
+        istio: ingressgateway
+    servers:
+        - port:
+              number: 80
+              name: http
+              protocol: HTTP
+          hosts:
+              - 'linkd.dev'
+              - 'api.linkd.dev'
+        - port:
+            number: 443
+            name: linkd-dev
+            protocol: HTTPS
+          tls:
+            mode: SIMPLE
+            credentialName: gateway-tls-secret
+          hosts:
+              - 'linkd.dev'
+              - 'api.linkd.dev'
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: api-linkd-dev-gateway
+spec:
+  hosts:
+  - "api.linkd.dev"
+  gateways:
+  - gateway
+  http:
+  - match:
+    - uri:
+        prefix: /user-security/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        port:
+          number: 18080
+        host: usersecurityservice
+  - match:
+    - uri:
+        prefix: /basic-display/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        port:
+          number: 28080
+        host: basicdisplayservice
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: linkd-dev-gateway
+spec:
+  hosts:
+  - "linkd.dev"
+  gateways:
+  - gateway
+  http:
+    - route:
+      - destination:
+          port:
+            number: 3000
+          host: nextclientservice

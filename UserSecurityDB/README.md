@@ -1,1 +1,0 @@
-kubectl apply -f config/user-security-db-config.yml

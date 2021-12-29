@@ -1,1 +1,0 @@
-kubectl apply -f config/basic-display-db-config.yml

@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: basicdisplaydb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: basicdisplaydb
+  template:
+    metadata:
+      labels:
+        app: basicdisplaydb
+    spec:
+      containers:
+        - name: server
+          image: postgres:14.1
+          ports:
+            - containerPort: 25432
+              name: tcp-postgres
+          envFrom:
+            - configMapRef:
+                name: basicdisplaydbconfig
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: basicdisplaydbconfig
+  labels:
+    app: postgres
+data:
+  POSTGRES_DB: postgres
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: changeme
+  PGPORT: "25432"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: basicdisplaydb
+spec:
+  type: ClusterIP
+  selector:
+    app: basicdisplaydb
+  ports:
+    - name: tcp-postgres
+      port: 25432
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: basicdisplaydb
+spec:
+  hosts:
+    - basicdisplaydb
+  http:
+    - route:
+        - destination:
+            host: basicdisplaydb
