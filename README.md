@@ -31,4 +31,11 @@ Check TlsSecret README.md
 kubectl -n istio-system delete pod $(kubectl -n istio-system get pod -lapp=istio-ingressgateway -ojsonpath='{.items[0].metadata.name}')
 ```
 
+### Use Telepresence
+
+```
+telepresence connect; 
+telepresence list; // get interceptable client
+telepresence intercept nextclientservice --port 3000:http --env-file ~/nextclientservice-intercept.env // select service and port to intercept
+```
 
