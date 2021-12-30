@@ -36,6 +36,9 @@ kubectl -n istio-system delete pod $(kubectl -n istio-system get pod -lapp=istio
 ```
 telepresence connect; 
 telepresence list; // get interceptable client
-telepresence intercept nextclientservice --port 3000:http --env-file ~/nextclientservice-intercept.env // select service and port to intercept
+telepresence intercept [SERVICE NAME] --port 3000:http --env-file ~/intercept.env // select service and port to intercept
+# Copy content of ~/intercept.env and paste it into gradle->edit configuration->environment variables->paste
+# Run service locally and traffic will be sent to the local service
+telepresence quit
 ```
 
