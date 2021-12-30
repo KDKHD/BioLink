@@ -20,12 +20,19 @@ spec:
               name: tcp-postgres
           envFrom:
             - configMapRef:
-                name: usersecuritydbconfig
+                name: usersecuritydb
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: usersecuritydb
+      volumes:
+      - name: usersecuritydb
+        persistentVolumeClaim:
+          claimName: usersecuritydb
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: usersecuritydbconfig
+  name: usersecuritydb
   labels:
     app: postgres
 data:
@@ -57,3 +64,32 @@ spec:
    - route:
      - destination:
          host: usersecuritydb
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: usersecuritydb
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 500M
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: usersecuritydb
+  name: usersecuritydb
+spec:
+  storageClassName: manual
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500M

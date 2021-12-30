@@ -20,12 +20,19 @@ spec:
               name: tcp-postgres
           envFrom:
             - configMapRef:
-                name: basicdisplaydbconfig
+                name: basicdisplaydb
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: basicdisplaydb
+      volumes:
+      - name: basicdisplaydb
+        persistentVolumeClaim:
+          claimName: basicdisplaydb
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: basicdisplaydbconfig
+  name: basicdisplaydb
   labels:
     app: postgres
 data:
@@ -57,3 +64,32 @@ spec:
     - route:
         - destination:
             host: basicdisplaydb
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: basicdisplaydb
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 500M
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: basicdisplaydb
+  name: basicdisplaydb
+spec:
+  storageClassName: manual
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500M
